@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Aggregators/">
+    <Project Path="src/Aggregators/IndigoTest.Aggregator.Domain/IndigoTest.Aggregator.Domain.csproj" />
+    <Project Path="src/Aggregators/IndigoTest.Aggregators.Operations/IndigoTest.Aggregators.Operations.csproj" />
+    <Project Path="src/Aggregators/IndigoTest.Aggregators.Persistence/IndigoTest.Aggregators.Persistence.csproj" />
+    <Project Path="src/Aggregators/IndigoTest.Aggregators.Web/IndigoTest.Aggregators.Web.csproj" />
+  </Folder>
+  <Folder Name="/Simulators/">
+    <Project Path="src/Simulators/IndigoTest.Simulators.Common/IndigoTest.Simulators.Common.csproj" />
+    <Project Path="src/Simulators/IndigoTest.Simulators.First/IndigoTest.Simulators.First.csproj" />
+    <Project Path="src/Simulators/IndigoTest.Simulators.Second/IndigoTest.Simulators.Second.csproj" />
+    <Project Path="src/Simulators/IndigoTest.Simulators.Third/IndigoTest.Simulators.Third.csproj" />
+  </Folder>
+</Solution>

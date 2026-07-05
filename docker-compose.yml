@@ -1,0 +1,112 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: indigo-postgres
+    environment:
+      POSTGRES_DB: indigo_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d indigo_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  first-simulator:
+    build:
+      context: .
+      dockerfile: src/Simulators/IndigoTest.Simulators.First/Dockerfile
+    container_name: indigo-first-simulator
+    environment:
+      Simulator__SourceName: "first-simulator"
+      Simulator__WebSocketPath: "/ws"
+      Simulator__TickIntervalMs: "10"
+      Simulator__TicksPerIteration: "4"
+      Simulator__Symbols__0: "BTCUSDT"
+      Simulator__Symbols__1: "ETHUSDT"
+      Simulator__Symbols__2: "SOLUSDT"
+      Simulator__PriceStep: "20"
+      Simulator__MinVolume: "0.01"
+      Simulator__MaxVolume: "4"
+    ports:
+      - "8081:8080"
+
+  second-simulator:
+    build:
+      context: .
+      dockerfile: src/Simulators/IndigoTest.Simulators.Second/Dockerfile
+    container_name: indigo-second-simulator
+    environment:
+      Simulator__SourceName: "second-simulator"
+      Simulator__WebSocketPath: "/ws"
+      Simulator__TickIntervalMs: "10"
+      Simulator__TicksPerIteration: "4"
+      Simulator__Symbols__0: "BTCUSDT"
+      Simulator__Symbols__1: "ETHUSDT"
+      Simulator__Symbols__2: "XRPUSDT"
+      Simulator__PriceStep: "35"
+      Simulator__MinVolume: "0.05"
+      Simulator__MaxVolume: "8"
+    ports:
+      - "8082:8080"
+
+  third-simulator:
+    build:
+      context: .
+      dockerfile: src/Simulators/IndigoTest.Simulators.Third/Dockerfile
+    container_name: indigo-third-simulator
+    environment:
+      Simulator__SourceName: "third-simulator"
+      Simulator__WebSocketPath: "/ws"
+      Simulator__TickIntervalMs: "10"
+      Simulator__TicksPerIteration: "4"
+      Simulator__Symbols__0: "BTCUSDT"
+      Simulator__Symbols__1: "ETHUSDT"
+      Simulator__Symbols__2: "DOGEUSDT"
+      Simulator__PriceStep: "18"
+      Simulator__MinVolume: "0.1"
+      Simulator__MaxVolume: "12"
+    ports:
+      - "8083:8080"
+
+  aggregator:
+    build:
+      context: .
+      dockerfile: src/Aggregators/IndigoTest.Aggregators.Web/Dockerfile
+    container_name: indigo-aggregator
+    depends_on:
+      postgres:
+        condition: service_healthy
+      first-simulator:
+        condition: service_started
+      second-simulator:
+        condition: service_started
+      third-simulator:
+        condition: service_started
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=indigo_test;Username=postgres;Password=postgres"
+      Aggregator__Sources__0__Source: "first-simulator"
+      Aggregator__Sources__0__Kind: "first"
+      Aggregator__Sources__0__Url: "ws://first-simulator:8080/ws"
+      Aggregator__Sources__1__Source: "second-simulator"
+      Aggregator__Sources__1__Kind: "second"
+      Aggregator__Sources__1__Url: "ws://second-simulator:8080/ws"
+      Aggregator__Sources__2__Source: "third-simulator"
+      Aggregator__Sources__2__Kind: "third"
+      Aggregator__Sources__2__Url: "ws://third-simulator:8080/ws"
+      Aggregator__Liveness__IdleTimeout: "00:00:10"
+      Aggregator__Reconnect__InitialDelay: "00:00:01"
+      Aggregator__Reconnect__MaxDelay: "00:00:30"
+      Aggregator__Transport__Capacity: "10000"
+      Aggregator__Deduplication__Window: "00:01:00"
+      Aggregator__Write__BatchSize: "100"
+      Aggregator__Write__RetryDelay: "00:00:01"
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:
